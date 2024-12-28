@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+model User {
+  id         String       @id @default(uuid()) @db.Uuid
+  tgId       String       @unique @map("tg_id")
+  name       String
+  balance    Decimal      @default(5) @db.Decimal
+  isBlocked  Boolean      @default(false) @map("is_blocked")
+  aiModelId  String?      @map("ai_model_id") @db.Uuid
+  aiModel    AiModel?     @relation(fields: [aiModelId], references: [id], onDelete: SetNull)
+  refererId  String?      @map("referer_id")
+  userPrompt UserPrompt[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model UserPrompt {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  prompt    String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_prompts")
+}
+
+model AiModel {
+  id         String @id @default(uuid()) @db.Uuid
+  name       String
+  multiplier Int    @default(1)
+  users      User[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_models")
+}
