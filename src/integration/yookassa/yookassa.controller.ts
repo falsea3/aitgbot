@@ -21,7 +21,8 @@ interface WebhookData {
 export class YookassaController {
     constructor(
         private userService: UserService,
-        private yookassaService: YookassaService
+        private yookassaService: YookassaService,
+        private bot: any
     ) {}
 
     async handleWebhook(request: FastifyRequest, reply: FastifyReply) {
@@ -49,7 +50,10 @@ export class YookassaController {
 
                     if (userId) {
                         await this.userService.updateBalance(userId, +amount);
-                        // await this.yookassaService.notifySuccessfulPayment(userId, +amount);
+                        await this.bot.api.sendMessage( 
+                            userId, 
+                            `Пополнение баланса на ${amount} руб.`
+                        );
                     }
 
                     break;

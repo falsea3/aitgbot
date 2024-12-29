@@ -16,7 +16,10 @@ import { AiModelService } from './modules/ai-model/ai-model.service';
 import { AiModelRepository } from './modules/ai-model/ai-model.repository';
 import { paymentConversation } from './modules/external/conversations/payment.conversation';
 import { YookassaService } from './integration/yookassa/yookassa.service';
-import { startWebhookServer } from './server';
+// import { startWebhookServer } from './server';
+import fastify from 'fastify';
+import cors from '@fastify/cors';
+import { YookassaController } from './integration/yookassa/yookassa.controller';
 
 import {
     type Conversation,
@@ -74,4 +77,46 @@ setInterval(async () => {
     console.log('не спать');
 }, 45000);
 
-startWebhookServer(userService, yookassaService);
+export async function startWebhookServer(
+    userService: UserService, 
+    yookassaService: YookassaService,
+    port: number = 5000,
+    bot: Bot<MyContext>
+) {
+    const server = fastify({ 
+        logger: {
+            level: 'info',
+            transport: {
+                target: 'pino-pretty',
+                options: {
+                    colorize: true,
+                    translateTime: 'HH:MM:ss Z',
+                    ignore: 'pid,hostname'
+                }
+            }
+        }
+    });
+
+    await server.register(cors, {
+        origin: '*',
+        methods: ['POST']
+    });
+
+    const yookassaController = new YookassaController(userService, yookassaService, bot);
+
+    server.post('/', async (request, reply) => {
+        await yookassaController.handleWebhook(request, reply);
+    });
+
+    try {
+        await server.listen({ port, host: '0.0.0.0' });
+        console.log(`ВЕБХУКЕР ЗАПУЩЕН НА ПОРТУ ${port}`);
+    } catch (err) {
+        console.error('ошибка вебхурера', err);
+        process.exit(1);
+    }
+
+    return server;
+}
+
+startWebhookServer(userService, yookassaService, 5000, bot);
