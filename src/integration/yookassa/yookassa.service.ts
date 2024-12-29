@@ -1,8 +1,7 @@
-// src/integration/yookassa/yookassa.service.ts
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { Bot } from 'grammy';
 import { v4 as uuidv4 } from 'uuid';
-// import updateBalance from '../../modules/user/user.service';
 
 dotenv.config();
 
@@ -13,7 +12,6 @@ const authHeader = `Basic ${Buffer.from(`${shopId}:${secretKey}`).toString('base
 
 export class YookassaService {
     async createPaymentLink(amount: number, userId: string) {
-        // console.log('Creating payment link', { amount, userId });
         try {
             const response = await axios.post(
                 'https://api.yookassa.ru/v3/payments',
@@ -22,9 +20,10 @@ export class YookassaService {
                         value: amount,
                         currency: 'RUB'
                     },
+                    capture: true,
                     confirmation: {
                         type: 'redirect',
-                        return_url: 'https://your-site.com'
+                        return_url: 'tg://resolve?domain=' + process.env.TELEGRAM_BOT_NAME
                     },
                     metadata: {
                         user_id: userId
@@ -39,39 +38,18 @@ export class YookassaService {
                     }
                 }
             );
-            // console.log('Payment link created', response.data);
+
             return {
                 paymentId: response.data.id,
                 paymentUrl: response.data.confirmation.confirmation_url
             };
         } catch (error) {
-            console.error('Error creating payment link', error);
-            throw error;
-        }
-    }
-
-    async checkPaymentStatus(paymentId: string) {
-        // console.log('Checking payment status', { paymentId });
-        try {
-            const response = await axios.get(
-                `https://api.yookassa.ru/v3/payments/${paymentId}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': authHeader
-                    }
-                }
-            );
-            // console.log('Payment status', response.data.status);
-            return response;
-        } catch (error) {
-            console.error('Error checking payment status', error);
+            console.error('ошибка создания ссылки', error);
             throw error;
         }
     }
 
     async acceptPayment(paymentId: string, amount: number) {
-        // console.log('Accepting payment', { paymentId });
         try {
             const response = await axios.post(
                 `https://api.yookassa.ru/v3/payments/${paymentId}/capture`,
@@ -89,29 +67,18 @@ export class YookassaService {
                     }
                 }
             );
-            // console.log('Payment accepted', response.data);
             return response.data;
         } catch (error) {
-            console.error('Error accepting payment', error);
+            console.error('ошибка подтверждения платежа', error);
             throw error;
         }
     }
 
+    // async notifySuccessfulPayment(userId: string, amount: number) {
+    //     await this.bot.api.sendMessage(
+    //         userId, 
+    //         `✅ Баланс пополнен на ${amount} руб.`
+    //     );
+    // }
+
 }
-
-// user.service.ts
-// export class UserService {
-//     constructor(private userRepository: UserRepository) {}
-
-//     async updateBalance(userId: string, amount: number) {
-//         console.log('Updating balance', { userId, amount });
-//         try {
-//             const result = await this.userRepository.updateUserBalance(userId, amount);
-//             console.log('Balance updated', result);
-//             return result;
-//         } catch (error) {
-//             console.error('Error updating balance', error);
-//             throw error;
-//         }
-//     }
-// }

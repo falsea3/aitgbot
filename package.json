@@ -1,9 +1,15 @@
 {
 	"scripts": {
 		"start": "ts-node src/index.ts",
-		"dev": "nodemon"
+		"dev": "nodemon",
+		"build": "pnpm install --prod=false && pnpm prisma generate && tsc",
+		"prod": "node dist/index.js"
 	},
 	"devDependencies": {
+		"@types/axios": "^0.14.4",
+		"@types/dotenv": "^8.2.3",
+		"@types/node": "^22.10.2",
+		"@types/uuid": "^10.0.0",
 		"nodemon": "^3.1.9",
 		"prisma": "^6.1.0",
 		"ts-node": "^10.9.2",
@@ -11,12 +17,15 @@
 		"typescript": "^5.7.2"
 	},
 	"dependencies": {
+		"@fastify/cors": "^10.0.1",
 		"@grammyjs/conversations": "github:grammyjs/conversations",
 		"@prisma/client": "6.1.0",
 		"axios": "^1.7.9",
 		"dotenv": "^16.4.7",
+		"fastify": "^5.2.0",
 		"grammy": "^1.33.0",
 		"openai": "^4.77.0",
+		"pino-pretty": "^13.0.0",
 		"uuid": "^11.0.3"
 	}
 }

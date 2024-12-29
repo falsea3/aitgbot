@@ -5,7 +5,6 @@ import { UserPromptService } from '../../user-prompt/user-prompt.service';
 import { OpenAiService } from '../../../integration/openai/openai.service';
 import { Prisma } from '@prisma/client';
 import { AiModelService } from '../../ai-model/ai-model.service';
-import axios from 'axios';
 
 dotenv.config();
 

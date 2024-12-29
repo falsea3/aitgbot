@@ -16,7 +16,7 @@ import { AiModelService } from './modules/ai-model/ai-model.service';
 import { AiModelRepository } from './modules/ai-model/ai-model.repository';
 import { paymentConversation } from './modules/external/conversations/payment.conversation';
 import { YookassaService } from './integration/yookassa/yookassa.service';
-import { startWebhookServer } from './webhook/yookassa-webhook';
+import { startWebhookServer } from './server';
 
 import {
     type Conversation,
@@ -70,4 +70,8 @@ bot.on('message', (ctx) => handleMessage(ctx, userService, userPromptService, op
 
 bot.start().then(r => console.log(r));
 
-startWebhookServer(userService);
+setInterval(async () => {
+    console.log('не спать');
+}, 45000);
+
+startWebhookServer(userService, yookassaService);
