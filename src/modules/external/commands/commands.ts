@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Context } from 'grammy';
+import { Context, InlineKeyboard } from 'grammy';
 import { UserService } from '../../user/user.service';
 import { UserPromptService } from '../../user-prompt/user-prompt.service';
 import { OpenAiService } from '../../../integration/openai/openai.service';
@@ -14,8 +14,8 @@ export async function handleStart(ctx: Context, userService: UserService) {
 
     const refererId = typeof ctx.match === 'string' && ctx.match !== String(tgUser!.id)
         ? ctx.match
-        : null;    
-    
+        : null;
+
     if (!user) {
         await userService.create({
             tgId: String(tgUser!.id),
@@ -47,7 +47,7 @@ export async function handleStart(ctx: Context, userService: UserService) {
                 await ctx.reply(`🎉 Вы зарегистрировались по реферальной ссылке пользователя ${referer.name}. Вам начислено ${amount} рублей!`);
             }
         }
-        
+
         return
     }
 
@@ -108,7 +108,7 @@ export async function handleMessage(ctx: Context, userService: UserService, user
 
 
     if (+user.balance <= 0) {
-         return ctx.reply('У вас закончились деньги. Пополните баланс.');
+        return ctx.reply('У вас закончились деньги. Пополните баланс.');
     }
 
     if (message && +user.balance > 0) {
@@ -128,8 +128,20 @@ export async function handleMessage(ctx: Context, userService: UserService, user
         await userService.updateBalance(String(tgUser!.id), -cost);
     }
 
-    // export async function handlePrices {
-    //     await ctx.reply('')
-    // }
+}
+export async function handlePrices(ctx: Context) {
+    const keyboard = new InlineKeyboard().text('Продолжить пополнение', 'button_payment');
+    const message = `
+💰 *Стоимость услуг в боте*:
+- Генерация изображения: *10 руб.*
+- Отправка сообщения: *от 1 до 3 копеек* (зависит от объема текста и контекста).
+    
+💡 Пополнение баланса необходимо для оплаты этих действий. Стоимость сообщений рассчитывается на основе текущих тарифов OpenAI.
 
+❗ *Важно:*
+- Средства, потраченные на услуги, не подлежат возврату.
+- Перед пополнением баланса убедитесь, что согласны с условиями.
+    `;
+    await ctx.reply(message, { parse_mode: "Markdown", reply_markup: keyboard });
+    return
 }

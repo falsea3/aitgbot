@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import {
     handleBalance,
     handleMessage,
+    handlePrices,
     handleRef,
     handleStart,
 } from './modules/external/commands/commands';
@@ -16,10 +17,10 @@ import { AiModelService } from './modules/ai-model/ai-model.service';
 import { AiModelRepository } from './modules/ai-model/ai-model.repository';
 import { paymentConversation } from './modules/external/conversations/payment.conversation';
 import { YookassaService } from './integration/yookassa/yookassa.service';
-// import { startWebhookServer } from './server';
 import fastify from 'fastify';
 import cors from '@fastify/cors';
 import { YookassaController } from './integration/yookassa/yookassa.controller';
+import axios from 'axios';
 
 import {
     type Conversation,
@@ -69,28 +70,17 @@ bot.use(
 
 bot.command("payment", async (ctx) => { await ctx.conversation.enter("paymentConversation"); });
 
-bot.command("prices", (ctx) => {
-    const message = `
-  💰 *Стоимость услуг в боте*:
-  - Генерация изображения: *10 руб.*
-  - Отправка сообщения: *от 1 до 3 копеек* (зависит от объема текста и контекста).
-    
-  💡 Пополнение баланса необходимо для оплаты этих действий. Стоимость сообщений рассчитывается на основе текущих тарифов OpenAI.
-  
-  ❗ *Важно:*
-  - Средства, потраченные на услуги, не подлежат возврату.
-  - Перед пополнением баланса убедитесь, что согласны с условиями.
-    `;
-    return ctx.reply(message, { parse_mode: "Markdown" });
-});
+bot.command("prices", (ctx) => { handlePrices(ctx) });
 
 bot.on('message', (ctx) => handleMessage(ctx, userService, userPromptService, openAiService, aiModelService));
 
-bot.start().then(r => console.log(r));
+bot.on('callback_query', (ctx) => { 
+    if (ctx.callbackQuery.data === 'button_payment') { 
+        return ctx.conversation.enter("paymentConversation"); 
+    }
+});
 
-setInterval(async () => {
-    console.log('не спать');
-}, 45000);
+bot.start().then(r => console.log(r));
 
 export async function startWebhookServer(
     userService: UserService,
@@ -123,6 +113,10 @@ export async function startWebhookServer(
         await yookassaController.handleWebhook(request, reply);
     });
 
+    server.get('/ping', async (request, reply) => {
+        reply.send({ status: 'ok' });
+    });
+
     try {
         await server.listen({ port, host: '0.0.0.0' });
         console.log(`ВЕБХУКЕР ЗАПУЩЕН НА ПОРТУ ${port}`);
@@ -130,6 +124,15 @@ export async function startWebhookServer(
         console.error('ошибка вебхурера', err);
         process.exit(1);
     }
+
+    setInterval(async () => {
+        try {
+            const response = await axios.get(`https://aitgbot-gqsg.onrender.com:${port}/ping`);
+            console.log(`Пинг успешен:`, response.data);
+        } catch (error: any) {
+            console.error('Ошибка пинга:', error.message);
+        }
+    }, 48000);
 
     return server;
 }
