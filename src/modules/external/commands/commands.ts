@@ -127,4 +127,9 @@ export async function handleMessage(ctx: Context, userService: UserService, user
 
         await userService.updateBalance(String(tgUser!.id), -cost);
     }
+
+    // export async function handlePrices {
+    //     await ctx.reply('')
+    // }
+
 }

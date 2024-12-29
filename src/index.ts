@@ -62,12 +62,27 @@ bot.use(
     createConversation(
         async (conversation, ctx) => {
             await paymentConversation(conversation, ctx, userService, yookassaService);
-        }, 
+        },
         "paymentConversation"
     )
 );
 
 bot.command("payment", async (ctx) => { await ctx.conversation.enter("paymentConversation"); });
+
+bot.command("prices", (ctx) => {
+    const message = `
+  💰 *Стоимость услуг в боте*:
+  - Генерация изображения: *10 руб.*
+  - Отправка сообщения: *от 1 до 3 копеек* (зависит от объема текста и контекста).
+    
+  💡 Пополнение баланса необходимо для оплаты этих действий. Стоимость сообщений рассчитывается на основе текущих тарифов OpenAI.
+  
+  ❗ *Важно:*
+  - Средства, потраченные на услуги, не подлежат возврату.
+  - Перед пополнением баланса убедитесь, что согласны с условиями.
+    `;
+    return ctx.reply(message, { parse_mode: "Markdown" });
+});
 
 bot.on('message', (ctx) => handleMessage(ctx, userService, userPromptService, openAiService, aiModelService));
 
@@ -78,12 +93,12 @@ setInterval(async () => {
 }, 45000);
 
 export async function startWebhookServer(
-    userService: UserService, 
+    userService: UserService,
     yookassaService: YookassaService,
     port: number = 5000,
     bot: Bot<MyContext>
 ) {
-    const server = fastify({ 
+    const server = fastify({
         logger: {
             level: 'info',
             transport: {
