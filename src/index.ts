@@ -127,12 +127,12 @@ export async function startWebhookServer(
 
     setInterval(async () => {
         try {
-            const response = await axios.get(`https://aitgbot-gqsg.onrender.com:${port}/ping`);
+            const response = await axios.get(`https://aitgbot-gqsg.onrender.com`);
             console.log(`Пинг успешен:`, response.data);
         } catch (error: any) {
             console.error('Ошибка пинга:', error.message);
         }
-    }, 48000);
+    }, 40000);
 
     return server;
 }
