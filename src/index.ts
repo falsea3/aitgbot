@@ -125,21 +125,25 @@ export async function startWebhookServer(
         process.exit(1);
     }
 
+    setInterval(async () => {
     try {
         const payload = {
             type: "notification",
             event: "ping"
         };
+
         const response = await axios.post(`https://aitgbot-gqsg.onrender.com`, payload, {
             headers: {
                 "Content-Type": "application/json"
             }
         });
+
         console.log(`Пинг успешен:`, response.data);
     } catch (error: any) {
         console.error('Ошибка пинга:', error.message);
     }
-}, 44000);
+}, 40000);
+
 
     return server;
 }
